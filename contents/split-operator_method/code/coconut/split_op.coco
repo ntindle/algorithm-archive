@@ -35,9 +35,9 @@ class Operators:
             self.K = np.exp(-0.5 * (par.k ** 2) * par.dt * 1i)
             self.R = np.exp(-0.5 * self.V * par.dt * 1i)
 
-def split_op(par: Parameters, opr: Operators) -> None:
+def split_op(opr: Operators) -> None:
 
-    for i in range(par.timesteps):
+    for i in range(opr.par.timesteps):
 
         # Half-step in real space
         opr.wfc *= opr.R
@@ -58,25 +58,25 @@ def split_op(par: Parameters, opr: Operators) -> None:
         density = np.abs(opr.wfc) ** 2
 
         # Renormalizing for imaginary time
-        if par.im_time:
-            renorm_factor = sum(density) * par.dx
+        if opr.par.im_time:
+            renorm_factor = sum(density) * opr.par.dx
             opr.wfc /= sqrt(renorm_factor)
 
         # Outputting data to file. Plotting can also be done in a
         # similar way. This is set to output exactly 100 files, no
         # matter how many timesteps were specified.
-        if i % (par.timesteps // 100) == 0:
+        if i % (opr.par.timesteps // 100) == 0:
             filename = "output{}.dat".format(str(i).rjust(5, str(0)))
             with open(filename, "w") as outfile:
                 # Outputting for gnuplot. Any plotter will do.
                 for j in range(len(density)):
                     template = "{}\t{}\t{}\n".format
-                    line = template(par.x[j], density[j].real, opr.V[j].real)
+                    line = template(opr.par.x[j], density[j].real, opr.V[j].real)
                     outfile.write(line)
             print("Outputting step: ", i + 1)
 
 
-def calculate_energy(par: Parameters, opr: Operators) -> float:
+def calculate_energy(opr: Operators) -> float:
     """Calculate the energy <Psi|H|Psi>."""
     # Creating real, momentum, and conjugate wavefunctions.
     wfc_r = opr.wfc
@@ -84,13 +84,13 @@ def calculate_energy(par: Parameters, opr: Operators) -> float:
     wfc_c = np.conj(wfc_r)
 
     # Finding the momentum and real-space energy terms
-    energy_k = 0.5 * wfc_c * np.fft.ifft((par.k ** 2) * wfc_k)
+    energy_k = 0.5 * wfc_c * np.fft.ifft((opr.par.k ** 2) * wfc_k)
     energy_r = wfc_c * opr.V * wfc_r
 
     # Integrating over all space
     energy_final = sum(energy_k + energy_r).real
 
-    return energy_final * par.dx
+    return energy_final * opr.par.dx
 
 
 def main() -> None:
@@ -105,4 +105,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    par = Parameters
+    par = Parameters(5.0, 256, 0.05, 100, True)
+    opr = Operators(par, 0.0, -1.0)
+    split_op(opr)
+
+    energy = calculate_energy(opr)
+
+    print('Energy is:', energy)
