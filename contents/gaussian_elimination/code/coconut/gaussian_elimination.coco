@@ -1,0 +1,23 @@
+import numpy as np
+
+data Matrix(array)
+
+def gaussian_elimination(a):
+	print(a)
+	case a.shape:
+		match (0, _):
+			return np.array([])
+		match (_, _):
+			i = np.argmax(a[:,0])
+			a[0, :], a[i, :] = a[i, :], a[0, :].copy()
+
+			for r in range(a.shape[0]):
+				fraction = a[r, 0] / a[0, 0]
+				a[r, :] -= fraction * a[i, :]
+
+			return gaussian_elimination(a[1:, 1:])
+
+if __name__ == '__main__':
+	a = np.array([[2, 3, 4],
+                  [1, 2, 3],
+                  [3, -4, 0]], dtype=float)
