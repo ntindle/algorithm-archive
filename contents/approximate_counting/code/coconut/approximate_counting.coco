@@ -1,0 +1,26 @@
+from random import choices
+from itertools import repeat
+
+def n(v, a) =
+	"""This function takes *v* the value in the register, and
+	*a* the scaling factor for the logarithm based on Morris's paper
+
+	It returns n(v, a) the approximate count."""
+	a * ((1 + 1/a)**v - 1)
+
+def increment(v, a) =
+	"""This function takes *v* the value in the register, and
+	*a* the scaling value for the logarithm based on Morris's paper.
+
+	It returns a new value for v."""
+	delta = 1 / (n(v+1, a) - n(v, a))
+	v + choices([0, 1], cum_weights=[delta, 1])
+
+def approximate_count(n, a) =
+	"""This simulates the count and takes *n* the number of items
+	to count and loop over, and *a* the scaling value for the
+	logarithm based on Morris's paper.
+
+	It returns n(v, a) the approximate count."""
+	v = reduce((x, y) -> increment(x, a), range(n))
+	n(v, a)
